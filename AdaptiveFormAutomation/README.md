@@ -1,197 +1,159 @@
 ﻿# Adaptive Selenium Form Automation
 
-A C# and Selenium-based automation project that identifies and interacts with form elements using multiple HTML attributes, associated labels, and surrounding context instead of relying entirely on fixed selectors.
+A C# console application that uses Selenium WebDriver to identify and interact with form fields using multiple HTML attributes and surrounding page context. It is designed to be less dependent on fixed element IDs, names, or page order.
 
-The project automates three form operations:
-- Entering a First Name.
-- Selecting a Gender radio button.
-- Selecting a State from a dropdown.
+The application automates three form operations:
 
-The element finder uses a scoring-based matching approach to identify the most suitable form element and rejects missing or ambiguous matches.
+- Enter a First Name.
+- Select a Gender radio option.
+- Select a State from a dropdown.
 
-## Features
+## Technologies
 
-- **Adaptive element detection:** Uses multiple HTML attributes and contextual information to identify elements.
-- **Text field automation:** Finds and fills the First Name field.
-- **Radio button selection:** Identifies the requested option within the Gender group.
-- **Dropdown selection:** Finds the State dropdown and selects the requested option.
-- **Ambiguity handling:** Rejects candidates when the highest-scoring elements have equal scores.
-- **Missing element handling:** Reports an error when a suitable field cannot be identified.
-- **Configurable URL:** Accepts a website URL through command-line arguments.
-- **Selection verification:** Checks whether radio button and dropdown selections succeeded.
-
-## Technologies Used
-
-| Technology | Purpose |
-|---|---|
-| C# | Programming language |
-| .NET 10 | Application framework |
-| Selenium WebDriver 4.52.0 | Browser automation |
-| Selenium Support 4.52.0 | Dropdown interaction |
-| Google Chrome | Browser used for testing |
-
-## Project Structure
-
-```text
-AdaptiveFormAutomation/
-│
-├── Program.cs
-├── FormAutomation.cs
-├── SmartElementFinder.cs
-├── TestPages/
-│   └── modified-form.html
-├── AdaptiveFormAutomation.csproj
-├── README.md
-└── .gitignore
-```
-
-### Main Components
-
-**1. Program.cs**
-
-- Starts the Chrome browser.
-- Opens the configured website.
-- Creates the form automation object.
-- Executes the form automation workflow.
-- Handles exceptions and closes the browser.
-
-**2. SmartElementFinder.cs**
-
-Responsible for identifying form elements using a scoring-based matching system.
-
-It examines:
-- HTML `name` attribute.
-- HTML `id` attribute.
-- `placeholder` attribute.
-- `aria-label` attribute.
-- `title` attribute.
-- Associated labels.
-- Nearby label text.
-- Radio group context.
-
-**3. FormAutomation.cs**
-
-Contains the operations required to:
-- Fill the First Name field.
-- Select a Gender option.
-- Select a State.
-- Verify the selections.
-
-**4. TestPages/modified-form.html**
-
-A local HTML test page used to evaluate element detection under modified page conditions.
-
-## Setup and Installation
-
-### Prerequisites
-
-Install the following:
-
-- .NET 10 SDK
-- Visual Studio 2022 or later with .NET development support
+- C#
+- .NET 10
+- Selenium WebDriver 4.52.0
+- Selenium Support 4.52.0
 - Google Chrome
 
-### Clone the repository
+## Repository structure
+
+```text
+Adaptive-Selenium-Automation/
+├── AdaptiveFormAutomation.slnx
+├── README.md
+├── .gitignore
+└── AdaptiveFormAutomation/
+    ├── AdaptiveFormAutomation.csproj
+    ├── Program.cs
+    ├── FormAutomation.cs
+    ├── SmartElementFinder.cs
+    └── modified-form.html
+```
+
+## How it works
+
+### Program.cs
+
+- Reads the website URL from the command line, or uses the CloudQA form URL by default.
+- Starts Chrome and opens the selected URL.
+- Runs the form automation workflow.
+- Reports errors and closes the browser.
+
+### SmartElementFinder.cs
+
+Collects candidate elements and ranks them using matching clues such as:
+
+- `name`, `id`, `placeholder`, `aria-label`, and `title` attributes.
+- Associated label text and nearby label text.
+- The surrounding label or legend for radio button groups.
+- The value and displayed label of an individual radio option.
+
+Text is normalized before comparison by converting it to lowercase and removing spaces and punctuation. The finder chooses the highest-scoring candidate. It reports an error when no candidate matches or when the top two candidates have equal scores.
+
+### FormAutomation.cs
+
+Uses the finder to fill the First Name field, select the requested Gender option, and select the requested State. It verifies the radio button and dropdown selections.
+
+## Requirements
+
+Before running the project, install:
+
+- .NET 10 SDK
+- Google Chrome
+- Visual Studio 2022 or later with .NET development support, or the .NET CLI
+
+Selenium packages are restored through the project file. Selenium Manager is used by Selenium to manage the browser driver.
+
+## Run the project
+
+Clone the repository:
 
 ```bash
 git clone https://github.com/GajjelaVasudev/Adaptive-Selenium-Automation.git
 ```
 
-Navigate to the project directory:
+Open a terminal in the project directory:
 
 ```bash
 cd Adaptive-Selenium-Automation/AdaptiveFormAutomation
 ```
 
-### Restore dependencies
+Restore dependencies and run:
 
 ```bash
 dotnet restore
-```
-
-## Running the Automation
-
-### Run against the default website
-
-```bash
 dotnet run
 ```
 
-The default URL is:
+By default, the application opens:
 
 ```text
 https://app.cloudqa.io/home/AutomationPracticeForm
 ```
 
-### Run against a different website
+### Use a different URL
 
-A URL can be supplied as a command-line argument:
+Pass the URL as the first command-line argument:
 
 ```bash
 dotnet run -- "https://example.com/form"
 ```
 
-The application uses the supplied URL instead of the default URL.
+The current test values are set in `Program.cs`:
 
-### Test data
-
-The current test execution uses:
-
-| Field | Test value |
+| Field | Value |
 |---|---|
 | First Name | Vasudev |
 | Gender | Male |
 | State | India |
 
-These values can be changed in `Program.cs`.
+Change these values in `Program.cs` to use different test data.
 
-## Adaptive Element Matching Approach
+## Local test page
 
-The application does not depend exclusively on fixed IDs or CSS selectors to identify the requested fields.
+The repository includes `modified-form.html`, a local HTML page used to test the finder when form fields are reordered, element IDs and names are changed, and similar-looking decoy fields are present.
 
-Instead, it uses the following process:
+To run against this page, pass its file URL. For example, from the project directory on Windows:
 
-1. **Candidate collection:** Finds elements based on their HTML type, such as text inputs, radio buttons, and dropdowns.
-2. **Attribute inspection:** Examines attributes including `id`, `name`, `placeholder`, `aria-label`, and `title`.
-3. **Context inspection:** Checks associated labels and nearby form labels. For radio buttons, it also examines the surrounding group context.
-4. **Text normalization:** Converts text to lowercase and removes spaces and special characters before comparison.
-5. **Scoring:** Assigns scores to matching clues and ranks candidate elements.
-6. **Validation:** Rejects missing matches and equal top-scoring candidates instead of selecting an arbitrary element.
+```powershell
+dotnet run -- "file:///G:/CloudQA/Task1/AdaptiveFormAutomation/AdaptiveFormAutomation/modified-form.html"
+```
 
-The element with the highest matching score is selected only when it is a unique match and is visible and enabled.
+Use the correct file path for your own computer. The local test page has different dropdown options, so change the State test value in `Program.cs` to an option that exists on that page (for example, `Andhra Pradesh`).
 
-## Test Scenarios
+## Test scenarios performed
 
-The implementation was tested against the original CloudQA form and a modified local HTML page.
-
-| Test scenario | Expected behaviour | Result |
+| Scenario | Expected behaviour | Observed result |
 |---|---|---|
 | Original CloudQA form | Fill First Name, select Gender and State | Passed |
-| Changed element IDs and names | Identify fields using remaining clues | Passed |
-| Reordered form fields | Identify fields independently of their position | Passed |
-| Similar-looking decoy fields | Prefer the correct field using label and context information | Passed after matching improvement |
-| Missing First Name field | Report that the requested field cannot be identified | Passed |
+| Changed IDs and names | Find fields using other available clues | Passed |
+| Reordered fields | Find fields without relying on their position | Passed |
+| Similar-looking decoy fields | Prefer the field whose label and context match the requested field | Passed after improving label matching |
+| First Name field missing | Report that the requested field cannot be identified rather than filling the decoy field | Passed |
 
-The missing-field scenario intentionally produces a test failure because the application correctly refuses to fill an unrelated field.
+The missing-field scenario is expected to report a failure: that is the correct behaviour because the requested field is absent.
 
-## Limitations
+## Approach and limitations
 
-- Element identification depends on meaningful HTML attributes, labels, or surrounding context.
-- If all identifying information is removed or misleading, the application cannot guarantee correct identification.
-- Nearby-label detection relies on the page's DOM structure and may need adjustment for substantially different layouts.
-- The scoring approach is heuristic-based and does not use machine learning or AI.
-- Dynamic pages may require additional explicit waits.
-- The current implementation is designed for the specified form fields and is not a universal automation solution for every type of website.
-- Changes to the website's DOM structure may require improvements to the element detection logic.
+This project uses rule-based, score-based matching. It does not use machine learning or an AI model.
 
-## Future Improvements
+The approach can tolerate some changes to element IDs, names, and field order when other useful attributes or labels remain available. It is not guaranteed to identify fields on every website.
 
-- Add configurable test data.
-- Introduce explicit waits for dynamically loaded elements.
-- Add automated unit and integration tests.
-- Improve matching confidence thresholds.
-- Support additional form element types.
-- Generate structured test execution reports.
+- Matching depends on useful HTML attributes, labels, or nearby context being present.
+- Nearby-label and radio-group detection use DOM relationships, so substantially different page structures may need additional handling.
+- If identifying information is missing, misleading, or shared by multiple elements, the finder may not be able to determine the intended field safely.
+- The current ambiguity check rejects equal top scores; it does not guarantee that every close-scoring candidate is unambiguous.
+- Dynamic forms may need explicit waits and additional handling.
+- The implementation currently targets the requested text field, radio group, and dropdown.
+
+## Possible future improvements
+
+- Add a configurable way to provide test data.
+- Add explicit waits for dynamically loaded fields.
+- Improve ambiguity detection using a confidence threshold and score margin.
+- Add automated tests and structured execution reports.
+- Support more form control types.
 
 ## Author
 
