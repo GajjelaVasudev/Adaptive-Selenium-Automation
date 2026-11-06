@@ -4,38 +4,49 @@ using OpenQA.Selenium.Chrome;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        // Website URL
-        string url = "https://app.cloudqa.io/home/AutomationPracticeForm";
+        // URL can be passed through the command line
+        string url = args.Length > 0
+            ? args[0]
+            : "https://app.cloudqa.io/home/AutomationPracticeForm";
 
-        // Configure Chrome
         ChromeOptions options = new ChromeOptions();
         options.AddArgument("--start-maximized");
 
-        // Launch browser
         IWebDriver driver = new ChromeDriver(options);
 
         try
         {
-            // Open the website
             driver.Navigate().GoToUrl(url);
 
-            // Display page information
-            Console.WriteLine("Browser opened successfully!");
-            Console.WriteLine("Page Title: " + driver.Title);
-            Console.WriteLine("Current URL: " + driver.Url);
+            Console.WriteLine("Website opened successfully!");
+            Console.WriteLine("URL: " + driver.Url);
 
-            Console.WriteLine("\nPress ENTER to close the browser.");
+            FormAutomation automation = new FormAutomation(driver);
+
+            // Test data
+            automation.RunFormTest(
+                "Vasu",
+                "Male",
+                "India"
+            );
+
+            Console.WriteLine("\nTest completed successfully!");
+
+            Console.WriteLine("\nPress ENTER to close browser.");
             Console.ReadLine();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
+            Console.WriteLine("\nTEST FAILED!");
+            Console.WriteLine(ex.Message);
+
+            Console.WriteLine("\nPress ENTER to close browser.");
+            Console.ReadLine();
         }
         finally
         {
-            // Close browser
             driver.Quit();
         }
     }
