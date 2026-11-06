@@ -6,18 +6,18 @@ class Program
 {
     static void Main(string[] args)
     {
-        // URL can be passed through the command line
         string url = args.Length > 0
             ? args[0]
             : "https://app.cloudqa.io/home/AutomationPracticeForm";
 
-        ChromeOptions options = new ChromeOptions();
-        options.AddArgument("--start-maximized");
-
-        IWebDriver driver = new ChromeDriver(options);
+        IWebDriver? driver = null;
 
         try
         {
+            ChromeOptions options = new ChromeOptions();
+            options.AddArgument("--start-maximized");
+
+            driver = new ChromeDriver(options);
             driver.Navigate().GoToUrl(url);
 
             Console.WriteLine("Website opened successfully!");
@@ -25,29 +25,21 @@ class Program
 
             FormAutomation automation = new FormAutomation(driver);
 
-            // Test data
-            automation.RunFormTest(
-                "Vasu",
-                "Male",
-                "India"
-            );
+            automation.RunFormTest("Vasudev", "Male", "India");
 
             Console.WriteLine("\nTest completed successfully!");
-
-            Console.WriteLine("\nPress ENTER to close browser.");
-            Console.ReadLine();
         }
         catch (Exception ex)
         {
             Console.WriteLine("\nTEST FAILED!");
             Console.WriteLine(ex.Message);
-
-            Console.WriteLine("\nPress ENTER to close browser.");
-            Console.ReadLine();
         }
         finally
         {
-            driver.Quit();
+            driver?.Quit();
         }
+
+        Console.WriteLine("\nPress ENTER to exit.");
+        Console.ReadLine();
     }
 }

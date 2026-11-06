@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Decoy Fields Test</title>
+</head>
+<body>
+    <h2>Automation Test - Similar Fields</h2>
+
+    <!-- Decoy: Last Name has a First Name placeholder -->
+    <div>
+        <label for="last-name">Last Name</label>
+        <input type="text" id="last-name"
+               name="surname" placeholder="First Name">
+    </div>
+
+    <br>
+
+    <!-- Actual First Name -->
+   
+
+    <br>
+
+    <!-- Decoy: Country dropdown -->
+    <div>
+        <label for="country-list">Country</label>
+        <select id="country-list" name="country">
+            <option>India</option>
+            <option>USA</option>
+        </select>
+    </div>
+
+    <br>
+
+    <!-- Actual State dropdown -->
+    <div>
+        <label for="location-select">State</label>
+        <select id="location-select" name="customer-location">
+            <option>Select a state</option>
+            <option>Andhra Pradesh</option>
+            <option>Telangana</option>
+            <option>Karnataka</option>
+            <option>Tamil Nadu</option>
+        </select>
+    </div>
+
+    <br>
+
+    <!-- Decoy radio group -->
+    <div>
+        <label>Preferred Pronoun</label>
+        <div>
+            <input type="radio" id="pronoun-male"
+                   name="pronoun" value="Male">
+            <label for="pronoun-male">Male</label>
+
+            <input type="radio" id="pronoun-female"
+                   name="pronoun" value="Female">
+            <label for="pronoun-female">Female</label>
+        </div>
+    </div>
+
+    <br>
+
+    <!-- Actual Gender group -->
+    <div>
+        <label>Gender</label>
+        <div>
+            <input type="radio" id="radio-23"
+                   name="personal-choice" value="Male">
+            <label for="radio-23">Male</label>
+
+            <input type="radio" id="radio-24"
+                   name="personal-choice" value="Female">
+            <label for="radio-24">Female</label>
+
+            <input type="radio" id="radio-25"
+                   name="personal-choice" value="Transgender">
+            <label for="radio-25">Transgender</label>
+        </div>
+    </div>
+
+</body>
+</html>

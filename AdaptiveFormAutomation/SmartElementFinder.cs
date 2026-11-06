@@ -15,7 +15,7 @@ public class SmartElementFinder
         js = (IJavaScriptExecutor)driver;
     }
 
-    // Find a text box using its attributes and associated label
+    // Find a text field using multiple clues
     public IWebElement FindTextField(string fieldName)
     {
         var elements = driver.FindElements(
@@ -25,7 +25,7 @@ public class SmartElementFinder
         return FindBestMatch(elements, fieldName);
     }
 
-    // Find a dropdown using its attributes and associated label
+    // Find a dropdown using multiple clues
     public IWebElement FindDropdown(string fieldName)
     {
         var elements = driver.FindElements(By.TagName("select"));
@@ -33,7 +33,7 @@ public class SmartElementFinder
         return FindBestMatch(elements, fieldName);
     }
 
-    // Find a radio button using its group name and option
+    // Find a radio option inside the requested group
     public IWebElement FindRadioOption(string groupName, string option)
     {
         var radios = driver.FindElements(
@@ -44,29 +44,26 @@ public class SmartElementFinder
 
         foreach (var radio in radios)
         {
-            int score = 0;
-
-            string value = radio.GetAttribute("value") ?? "";
-
             string groupContext = GetRadioGroupContext(radio);
 
-            // Check whether this radio belongs to the requested group
-            score += ScoreText(groupContext, groupName, 12);
+            // Do not select a radio if its group cannot be identified.
+            int groupScore = ScoreText(groupContext, groupName, 12);
 
-            // Check whether the radio value matches the requested option
+            if (groupScore == 0)
+                continue;
+
+            int score = groupScore;
+
+            string value = radio.GetAttribute("value") ?? "";
             score += ScoreText(value, option, 10);
 
-            // Check whether its associated label matches the option
             string label = GetLabels(radio);
-
             score += ScoreText(label, option, 10);
 
-            // Check the text of a nearby option label
             string optionText = GetRadioOptionText(radio);
-
             score += ScoreText(optionText, option, 10);
 
-            if (score > 0)
+            if (score >= 12)
             {
                 scores.Add((radio, score));
             }
@@ -75,7 +72,7 @@ public class SmartElementFinder
         return GetBestElement(scores, groupName + " - " + option);
     }
 
-    // Find the best matching text box or dropdown
+    // Find the best matching text field or dropdown
     private IWebElement FindBestMatch(
         IReadOnlyCollection<IWebElement> elements,
         string fieldName)
@@ -84,12 +81,23 @@ public class SmartElementFinder
 
         foreach (var element in elements)
         {
+            string labels = GetLabels(element);
+
+            // Reject elements whose actual associated label
+            // contradicts the requested field.
+            if (!string.IsNullOrWhiteSpace(labels) &&
+                ScoreText(labels, fieldName, 14) == 0)
+            {
+                continue;
+            }
+
             int score = 0;
 
-            // Check HTML attributes
-            score += ScoreText(element.GetAttribute("name"), fieldName, 10);
+            score += ScoreText(
+                element.GetAttribute("name"), fieldName, 10);
 
-            score += ScoreText(element.GetAttribute("id"), fieldName, 8);
+            score += ScoreText(
+                element.GetAttribute("id"), fieldName, 8);
 
             score += ScoreText(
                 element.GetAttribute("placeholder"), fieldName, 8);
@@ -100,17 +108,13 @@ public class SmartElementFinder
             score += ScoreText(
                 element.GetAttribute("title"), fieldName, 5);
 
-            // Check associated labels
-            string labels = GetLabels(element);
-
             score += ScoreText(labels, fieldName, 14);
 
-            // Check nearby form label text
             string nearbyLabel = GetNearbyLabel(element);
-
             score += ScoreText(nearbyLabel, fieldName, 8);
 
-            if (score > 0)
+            // Avoid selecting elements based on very weak clues.
+            if (score >= 8)
             {
                 scores.Add((element, score));
             }
@@ -119,7 +123,7 @@ public class SmartElementFinder
         return GetBestElement(scores, fieldName);
     }
 
-    // Get labels connected to an element
+    // Get labels directly associated with an element
     private string GetLabels(IWebElement element)
     {
         return js.ExecuteScript(
@@ -129,7 +133,7 @@ public class SmartElementFinder
         )?.ToString() ?? "";
     }
 
-    // Find nearby labels without depending on a fixed parent structure
+    // Look for labels near an element
     private string GetNearbyLabel(IWebElement element)
     {
         return js.ExecuteScript(
@@ -148,7 +152,7 @@ public class SmartElementFinder
         )?.ToString() ?? "";
     }
 
-    // Find the surrounding context of a radio button group
+    // Identify the surrounding radio group label
     private string GetRadioGroupContext(IWebElement radio)
     {
         return js.ExecuteScript(
@@ -190,7 +194,7 @@ public class SmartElementFinder
         )?.ToString() ?? "";
     }
 
-    // Calculate the matching score
+    // Compare text after normalizing it
     private int ScoreText(
         string? actual,
         string expected,
@@ -214,7 +218,7 @@ public class SmartElementFinder
         return 0;
     }
 
-    // Normalize text before comparing it
+    // Remove spaces and special characters before comparison
     private string Normalize(string value)
     {
         return new string(
@@ -224,7 +228,7 @@ public class SmartElementFinder
         );
     }
 
-    // Select the highest-scoring element
+    // Return the highest-scoring valid element
     private IWebElement GetBestElement(
         List<(IWebElement Element, int Score)> scores,
         string fieldName)
@@ -240,6 +244,7 @@ public class SmartElementFinder
             .OrderByDescending(x => x.Score)
             .ToList();
 
+        // Do not guess when two elements have the same score.
         if (ranked.Count > 1 &&
             ranked[0].Score == ranked[1].Score)
         {
